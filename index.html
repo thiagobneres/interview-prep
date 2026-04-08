@@ -997,10 +997,10 @@
 // CONFIG — update these values
 // ═══════════════════════════════════════════════════════════
 const CONFIG = {
-  sitePassword:    "lemon",
-  workerUrl:       "lucky-cell-b3cb.thiago-bneres.workers.dev",
-  githubOwner:     "thiagobneres",
-  githubRepo:      "interview-prep",
+  sitePassword: "lemon",
+  workerUrl:    "https://lucky-cell-b3cb.thiago-bneres.workers.dev",
+  githubOwner:  "thiagobneres",
+  githubRepo:   "interview-prep",
 };
 
 // ═══════════════════════════════════════════════════════════
@@ -1656,15 +1656,30 @@ function renderResults(r) {
 }
 
 // ═══════════════════════════════════════════════════════════
-// GITHUB STORAGE
+// GITHUB STORAGE — all calls route through Cloudflare Worker
 // ═══════════════════════════════════════════════════════════
+async function githubRead(path) {
+  const res = await fetch(CONFIG.workerUrl, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ action: "github_read", owner: CONFIG.githubOwner, repo: CONFIG.githubRepo, path }),
+  });
+  return res;
+}
+
+async function githubWrite(path, content, sha, message) {
+  const res = await fetch(CONFIG.workerUrl, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ action: "github_write", owner: CONFIG.githubOwner, repo: CONFIG.githubRepo, path, content, sha, message }),
+  });
+  return res;
+}
+
 async function loadHistory() {
   const file = `data/${state.user}.json`;
   try {
-    const res = await fetch(
-      `https://api.github.com/repos/${CONFIG.githubOwner}/${CONFIG.githubRepo}/contents/${file}`,
-      { headers: { Authorization: `token ${CONFIG.githubToken}`, Accept: "application/vnd.github.v3+json" } }
-    );
+    const res = await githubRead(file);
     if (!res.ok) { renderHistory([]); return; }
     const meta = await res.json();
     const content = JSON.parse(atob(meta.content));
@@ -1707,12 +1722,7 @@ async function saveResults(r) {
   };
 
   try {
-    // Get current file
-    const getRes = await fetch(
-      `https://api.github.com/repos/${CONFIG.githubOwner}/${CONFIG.githubRepo}/contents/${file}`,
-      { headers: { Authorization: `token ${CONFIG.githubToken}`, Accept: "application/vnd.github.v3+json" } }
-    );
-
+    const getRes = await githubRead(file);
     let sha = null;
     let existing = { sessions: [] };
     if (getRes.ok) {
@@ -1720,16 +1730,13 @@ async function saveResults(r) {
       sha = meta.sha;
       try { existing = JSON.parse(atob(meta.content)); } catch(e) {}
     }
-
     existing.sessions = existing.sessions || [];
     existing.sessions.push(newRecord);
-
-    const body = { message: `Session recorded — ${newRecord.date}`, content: btoa(JSON.stringify(existing, null, 2)) };
-    if (sha) body.sha = sha;
-
-    await fetch(
-      `https://api.github.com/repos/${CONFIG.githubOwner}/${CONFIG.githubRepo}/contents/${file}`,
-      { method: "PUT", headers: { Authorization: `token ${CONFIG.githubToken}`, "Content-Type": "application/json" }, body: JSON.stringify(body) }
+    await githubWrite(
+      file,
+      btoa(JSON.stringify(existing, null, 2)),
+      sha,
+      `Session recorded — ${newRecord.date}`
     );
   } catch(e) { console.error("Save failed:", e); }
 }
