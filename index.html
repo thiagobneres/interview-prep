@@ -1,0 +1,1817 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Interview Prep</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0f12;
+    --bg2: #13161b;
+    --bg3: #1a1e25;
+    --border: rgba(255,255,255,0.07);
+    --border2: rgba(255,255,255,0.13);
+    --text: #e8e6e0;
+    --text2: #8a8880;
+    --text3: #555350;
+    --accent: #c8a96e;
+    --accent2: #9c7d46;
+    --accent-bg: rgba(200,169,110,0.08);
+    --accent-bg2: rgba(200,169,110,0.15);
+    --green: #5dab7f;
+    --green-bg: rgba(93,171,127,0.1);
+    --red: #c46a5a;
+    --red-bg: rgba(196,106,90,0.1);
+    --blue: #6b9fd4;
+    --blue-bg: rgba(107,159,212,0.1);
+    --radius: 10px;
+    --radius-lg: 16px;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    font-size: 15px;
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  /* ── NOISE TEXTURE OVERLAY ── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.4;
+  }
+
+  /* ── SCREENS ── */
+  .screen {
+    display: none;
+    min-height: 100vh;
+    position: relative;
+    z-index: 1;
+  }
+  .screen.active { display: flex; flex-direction: column; }
+
+  /* ── PASSWORD GATE ── */
+  #screen-gate {
+    align-items: center;
+    justify-content: center;
+  }
+  .gate-box {
+    width: 100%;
+    max-width: 380px;
+    padding: 48px 40px;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    text-align: center;
+  }
+  .gate-logo {
+    font-family: 'DM Serif Display', serif;
+    font-size: 28px;
+    color: var(--accent);
+    margin-bottom: 8px;
+    letter-spacing: -0.5px;
+  }
+  .gate-sub {
+    font-size: 13px;
+    color: var(--text3);
+    margin-bottom: 36px;
+    font-family: 'DM Mono', monospace;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+  .gate-box input {
+    width: 100%;
+    padding: 12px 16px;
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    border-radius: var(--radius);
+    color: var(--text);
+    font-size: 15px;
+    font-family: 'DM Mono', monospace;
+    text-align: center;
+    letter-spacing: 0.1em;
+    outline: none;
+    margin-bottom: 12px;
+    transition: border-color 0.2s;
+  }
+  .gate-box input:focus { border-color: var(--accent); }
+  .gate-error {
+    font-size: 12px;
+    color: var(--red);
+    margin-bottom: 12px;
+    min-height: 16px;
+  }
+
+  /* ── BUTTONS ── */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 11px 24px;
+    border-radius: var(--radius);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    border: none;
+    transition: all 0.18s ease;
+    letter-spacing: 0.01em;
+  }
+  .btn-primary {
+    background: var(--accent);
+    color: #0d0f12;
+    width: 100%;
+  }
+  .btn-primary:hover { background: #d4b87e; transform: translateY(-1px); }
+  .btn-primary:active { transform: translateY(0); }
+  .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+  .btn-ghost {
+    background: transparent;
+    color: var(--text2);
+    border: 1px solid var(--border2);
+    padding: 8px 16px;
+    font-size: 13px;
+  }
+  .btn-ghost:hover { border-color: var(--accent2); color: var(--accent); }
+  .btn-danger {
+    background: var(--red-bg);
+    color: var(--red);
+    border: 1px solid rgba(196,106,90,0.2);
+    padding: 8px 16px;
+    font-size: 13px;
+  }
+
+  /* ── SETUP SCREEN ── */
+  #screen-setup {
+    align-items: center;
+    justify-content: flex-start;
+    padding: 40px 20px 60px;
+  }
+  .setup-wrap {
+    width: 100%;
+    max-width: 640px;
+  }
+  .setup-header {
+    margin-bottom: 40px;
+  }
+  .wordmark {
+    font-family: 'DM Serif Display', serif;
+    font-size: 22px;
+    color: var(--accent);
+    letter-spacing: -0.3px;
+    margin-bottom: 6px;
+  }
+  .setup-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 36px;
+    font-weight: 400;
+    line-height: 1.2;
+    letter-spacing: -0.8px;
+    color: var(--text);
+    margin-bottom: 8px;
+  }
+  .setup-desc {
+    font-size: 14px;
+    color: var(--text2);
+    line-height: 1.6;
+  }
+
+  .form-section {
+    margin-bottom: 28px;
+  }
+  .form-label {
+    display: block;
+    font-size: 11px;
+    font-family: 'DM Mono', monospace;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text3);
+    margin-bottom: 10px;
+  }
+  .form-label span {
+    color: var(--accent2);
+    margin-left: 4px;
+  }
+
+  textarea, input[type="text"], input[type="url"], select {
+    width: 100%;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s, background 0.2s;
+  }
+  textarea:focus, input[type="text"]:focus, input[type="url"]:focus, select:focus {
+    border-color: var(--accent2);
+    background: var(--bg3);
+  }
+  textarea {
+    padding: 14px 16px;
+    resize: vertical;
+    line-height: 1.6;
+  }
+  input[type="text"], input[type="url"] {
+    padding: 11px 14px;
+  }
+  select {
+    padding: 11px 14px;
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L6 6L11 1' stroke='%23555350' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+  }
+  select option { background: var(--bg2); }
+
+  .pill-group {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .pill {
+    padding: 8px 18px;
+    border-radius: 40px;
+    border: 1px solid var(--border2);
+    background: transparent;
+    color: var(--text2);
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .pill:hover { border-color: var(--accent2); color: var(--accent); }
+  .pill.active {
+    background: var(--accent-bg2);
+    border-color: var(--accent);
+    color: var(--accent);
+    font-weight: 500;
+  }
+
+  .url-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+  .url-row input { flex: 1; }
+  .url-add {
+    background: transparent;
+    border: 1px dashed var(--border2);
+    border-radius: var(--radius);
+    color: var(--text3);
+    font-size: 13px;
+    padding: 10px 14px;
+    cursor: pointer;
+    width: 100%;
+    text-align: left;
+    font-family: 'DM Sans', sans-serif;
+    transition: all 0.15s;
+  }
+  .url-add:hover { border-color: var(--accent2); color: var(--accent2); }
+
+  .form-row-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  .setup-footer {
+    padding-top: 8px;
+    border-top: 1px solid var(--border);
+    margin-top: 8px;
+  }
+  .char-count {
+    font-size: 11px;
+    color: var(--text3);
+    text-align: right;
+    margin-top: 4px;
+    font-family: 'DM Mono', monospace;
+  }
+
+  /* ── INTERVIEW SCREEN ── */
+  #screen-interview {
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+  }
+  .interview-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 28px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg2);
+    flex-shrink: 0;
+  }
+  .interview-meta {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .meta-badge {
+    font-size: 11px;
+    font-family: 'DM Mono', monospace;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text3);
+    background: var(--bg3);
+    padding: 4px 10px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+  }
+  .meta-badge.type-hr { color: var(--blue); border-color: rgba(107,159,212,0.3); background: var(--blue-bg); }
+  .meta-badge.type-manager { color: var(--accent); border-color: rgba(200,169,110,0.3); background: var(--accent-bg); }
+  .meta-badge.type-panel { color: var(--green); border-color: rgba(93,171,127,0.3); background: var(--green-bg); }
+
+  .timer-wrap {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+  .timer-display {
+    font-family: 'DM Mono', monospace;
+    font-size: 20px;
+    font-weight: 500;
+    color: var(--text);
+    letter-spacing: 0.05em;
+  }
+  .timer-display.warning { color: var(--accent); }
+  .timer-display.urgent { color: var(--red); }
+  .timer-bar-wrap {
+    width: 120px;
+    height: 3px;
+    background: var(--bg3);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .timer-bar {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 2px;
+    transition: width 1s linear, background 0.5s;
+  }
+
+  .interview-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 32px 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    scroll-behavior: smooth;
+  }
+  .interview-body::-webkit-scrollbar { width: 4px; }
+  .interview-body::-webkit-scrollbar-track { background: transparent; }
+  .interview-body::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+  .message {
+    display: flex;
+    gap: 12px;
+    max-width: 760px;
+    animation: fadeSlideIn 0.3s ease;
+  }
+  @keyframes fadeSlideIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .message.ai { align-self: flex-start; }
+  .message.user { align-self: flex-end; flex-direction: row-reverse; }
+
+  .msg-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-family: 'DM Mono', monospace;
+    font-weight: 500;
+    margin-top: 2px;
+  }
+  .msg-avatar.ai-avatar {
+    background: var(--accent-bg2);
+    border: 1px solid rgba(200,169,110,0.3);
+    color: var(--accent);
+  }
+  .msg-avatar.user-avatar {
+    background: var(--blue-bg);
+    border: 1px solid rgba(107,159,212,0.3);
+    color: var(--blue);
+  }
+
+  .msg-bubble {
+    padding: 13px 16px;
+    border-radius: 12px;
+    font-size: 14px;
+    line-height: 1.7;
+    max-width: 680px;
+  }
+  .message.ai .msg-bubble {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-top-left-radius: 3px;
+  }
+  .message.user .msg-bubble {
+    background: var(--accent-bg2);
+    border: 1px solid rgba(200,169,110,0.2);
+    color: var(--text);
+    border-top-right-radius: 3px;
+  }
+  .msg-time {
+    font-size: 10px;
+    color: var(--text3);
+    font-family: 'DM Mono', monospace;
+    margin-top: 5px;
+    text-align: right;
+  }
+  .message.ai .msg-time { text-align: left; }
+
+  .phase-indicator {
+    text-align: center;
+    padding: 6px 0;
+    font-size: 11px;
+    font-family: 'DM Mono', monospace;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text3);
+  }
+  .phase-indicator span {
+    display: inline-block;
+    padding: 4px 14px;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    background: var(--bg2);
+  }
+  .phase-indicator.qa span { color: var(--green); border-color: rgba(93,171,127,0.3); }
+  .phase-indicator.wrap span { color: var(--accent); border-color: rgba(200,169,110,0.3); }
+
+  /* AI speaking indicator */
+  .speaking-dots {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+    padding: 12px 16px;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    border-top-left-radius: 3px;
+  }
+  .speaking-dots span {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent2);
+    animation: dotPulse 1.2s ease-in-out infinite;
+  }
+  .speaking-dots span:nth-child(2) { animation-delay: 0.2s; }
+  .speaking-dots span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes dotPulse {
+    0%, 80%, 100% { transform: scale(0.7); opacity: 0.4; }
+    40% { transform: scale(1); opacity: 1; }
+  }
+
+  /* ── INTERVIEW FOOTER / MIC AREA ── */
+  .interview-footer {
+    flex-shrink: 0;
+    padding: 20px 28px;
+    border-top: 1px solid var(--border);
+    background: var(--bg2);
+  }
+  .mic-area {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .mic-btn {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: var(--bg3);
+    border: 1.5px solid var(--border2);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    flex-shrink: 0;
+    position: relative;
+  }
+  .mic-btn:hover:not(:disabled) {
+    border-color: var(--accent2);
+    background: var(--accent-bg);
+  }
+  .mic-btn.recording {
+    background: var(--red-bg);
+    border-color: var(--red);
+    animation: micPulse 1.5s ease-in-out infinite;
+  }
+  .mic-btn.disabled-mic {
+    opacity: 0.3;
+    cursor: not-allowed;
+  }
+  @keyframes micPulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(196,106,90,0.3); }
+    50% { box-shadow: 0 0 0 10px rgba(196,106,90,0); }
+  }
+  .mic-icon { pointer-events: none; }
+  .mic-status {
+    flex: 1;
+  }
+  .mic-label {
+    font-size: 13px;
+    color: var(--text2);
+    margin-bottom: 3px;
+  }
+  .mic-transcript {
+    font-size: 13px;
+    color: var(--text3);
+    font-style: italic;
+    min-height: 18px;
+    line-height: 1.4;
+  }
+  .mic-transcript.active { color: var(--text); font-style: normal; }
+  .answer-duration {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--text3);
+    text-align: right;
+    flex-shrink: 0;
+  }
+
+  /* ── RESULTS SCREEN ── */
+  #screen-results {
+    align-items: center;
+    padding: 40px 20px 80px;
+  }
+  .results-wrap {
+    width: 100%;
+    max-width: 720px;
+  }
+  .results-header {
+    margin-bottom: 36px;
+    padding-bottom: 28px;
+    border-bottom: 1px solid var(--border);
+  }
+  .results-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 32px;
+    letter-spacing: -0.5px;
+    margin-bottom: 6px;
+  }
+  .results-meta-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  /* Overall score */
+  .overall-score-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 28px 32px;
+    margin-bottom: 28px;
+    display: flex;
+    align-items: center;
+    gap: 28px;
+  }
+  .score-circle {
+    width: 88px;
+    height: 88px;
+    border-radius: 50%;
+    border: 3px solid var(--accent2);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    background: var(--accent-bg);
+  }
+  .score-circle .score-num {
+    font-family: 'DM Serif Display', serif;
+    font-size: 30px;
+    color: var(--accent);
+    line-height: 1;
+  }
+  .score-circle .score-denom {
+    font-size: 11px;
+    color: var(--accent2);
+    font-family: 'DM Mono', monospace;
+  }
+  .score-summary {
+    flex: 1;
+  }
+  .score-summary h3 {
+    font-size: 16px;
+    font-weight: 500;
+    margin-bottom: 4px;
+  }
+  .score-summary p {
+    font-size: 13px;
+    color: var(--text2);
+    line-height: 1.6;
+  }
+
+  /* Domain scores */
+  .section-label {
+    font-size: 11px;
+    font-family: 'DM Mono', monospace;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text3);
+    margin-bottom: 14px;
+  }
+  .domain-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px 20px;
+    margin-bottom: 10px;
+  }
+  .domain-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    gap: 12px;
+  }
+  .domain-name {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text);
+  }
+  .domain-score-pill {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    flex-shrink: 0;
+  }
+  .domain-score-pill.high { background: var(--green-bg); color: var(--green); border: 1px solid rgba(93,171,127,0.3); }
+  .domain-score-pill.mid { background: var(--accent-bg); color: var(--accent); border: 1px solid rgba(200,169,110,0.3); }
+  .domain-score-pill.low { background: var(--red-bg); color: var(--red); border: 1px solid rgba(196,106,90,0.3); }
+  .domain-bar-wrap {
+    height: 3px;
+    background: var(--bg3);
+    border-radius: 2px;
+    margin-bottom: 12px;
+    overflow: hidden;
+  }
+  .domain-bar { height: 100%; border-radius: 2px; transition: width 1s ease; }
+  .domain-feedback {
+    font-size: 13px;
+    color: var(--text2);
+    line-height: 1.7;
+  }
+
+  /* Strengths / improvements */
+  .feedback-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+  .feedback-col h4 {
+    font-size: 12px;
+    font-family: 'DM Mono', monospace;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 12px;
+  }
+  .feedback-col.strengths h4 { color: var(--green); }
+  .feedback-col.improvements h4 { color: var(--accent); }
+
+  .feedback-item {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    margin-bottom: 8px;
+  }
+  .feedback-item p {
+    font-size: 13px;
+    color: var(--text2);
+    line-height: 1.6;
+    margin-bottom: 6px;
+  }
+  .feedback-item blockquote {
+    font-size: 12px;
+    color: var(--text3);
+    font-style: italic;
+    border-left: 2px solid var(--border2);
+    padding-left: 10px;
+    margin-top: 6px;
+    line-height: 1.5;
+  }
+  .feedback-col.strengths .feedback-item { border-left: 2px solid rgba(93,171,127,0.4); }
+  .feedback-col.improvements .feedback-item { border-left: 2px solid rgba(200,169,110,0.4); }
+
+  /* History */
+  .history-section {
+    margin-top: 36px;
+    padding-top: 28px;
+    border-top: 1px solid var(--border);
+  }
+  .history-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 8px;
+    font-size: 13px;
+  }
+  .history-date { color: var(--text3); font-family: 'DM Mono', monospace; font-size: 11px; flex-shrink: 0; }
+  .history-job { color: var(--text2); flex: 1; }
+  .history-type { font-size: 11px; color: var(--text3); }
+  .history-score {
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    font-weight: 500;
+    flex-shrink: 0;
+    min-width: 36px;
+    text-align: right;
+  }
+
+  /* Results actions */
+  .results-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 32px;
+    flex-wrap: wrap;
+  }
+  .btn-email {
+    background: var(--accent);
+    color: #0d0f12;
+    font-weight: 500;
+    padding: 11px 22px;
+    font-size: 14px;
+  }
+  .btn-email:hover { background: #d4b87e; }
+
+  /* ── LOADING / THINKING ── */
+  .thinking-msg {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    max-width: 760px;
+  }
+  .thinking-bubble {
+    padding: 13px 16px;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    border-top-left-radius: 3px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--text3);
+    font-style: italic;
+  }
+
+  /* ── SCROLLBAR GLOBAL ── */
+  ::-webkit-scrollbar { width: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 600px) {
+    .form-row-2 { grid-template-columns: 1fr; }
+    .feedback-grid { grid-template-columns: 1fr; }
+    .overall-score-card { flex-direction: column; text-align: center; }
+    .interview-header { padding: 12px 16px; }
+    .interview-body { padding: 20px 16px; }
+    .interview-footer { padding: 16px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════
+     SCREEN 0 — PASSWORD GATE
+═══════════════════════════════════════════ -->
+<div id="screen-gate" class="screen active">
+  <div class="gate-box">
+    <div class="gate-logo">Interview Prep</div>
+    <div class="gate-sub">Practice · Reflect · Improve</div>
+    <input type="password" id="gate-input" placeholder="Enter access code" autocomplete="off">
+    <div class="gate-error" id="gate-error"></div>
+    <button class="btn btn-primary" onclick="checkPassword()">Enter</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SCREEN 1 — SETUP
+═══════════════════════════════════════════ -->
+<div id="screen-setup" class="screen">
+  <div class="setup-wrap">
+    <div class="setup-header">
+      <div class="wordmark">Interview Prep</div>
+      <div class="setup-title">Let's get you ready.</div>
+      <div class="setup-desc">Paste a job description, set the format, and start your session. The more context you provide, the more tailored your practice.</div>
+    </div>
+
+    <!-- Who's practicing -->
+    <div class="form-section">
+      <label class="form-label">Who's practicing?</label>
+      <select id="setup-user">
+        <option value="michael">Michael</option>
+        <option value="thiago">Thiago</option>
+      </select>
+    </div>
+
+    <!-- Job description -->
+    <div class="form-section">
+      <label class="form-label">Job description <span>required</span></label>
+      <textarea id="setup-jd" rows="8" placeholder="Paste the full job description here — the more detail, the better the simulation. Include responsibilities, requirements, and anything else from the posting."></textarea>
+      <div class="char-count" id="jd-count">0 characters</div>
+    </div>
+
+    <!-- Company URLs -->
+    <div class="form-section">
+      <label class="form-label">Company context URLs <span style="color:var(--text3); margin-left:0"> — optional</span></label>
+      <div id="url-list">
+        <div class="url-row">
+          <input type="url" placeholder="https://company.com/about-us" class="ctx-url">
+          <button class="btn btn-ghost" onclick="removeUrlRow(this)" title="Remove">✕</button>
+        </div>
+      </div>
+      <button class="url-add" id="url-add-btn" onclick="addUrlRow()" style="display:none">+ Add another URL</button>
+      <div style="font-size:12px;color:var(--text3);margin-top:8px;">Company culture page, team page, product overview — helps the AI tailor context and questions.</div>
+    </div>
+
+    <!-- Interview type + duration -->
+    <div class="form-row-2">
+      <div class="form-section">
+        <label class="form-label">Interview type</label>
+        <div class="pill-group" id="type-pills">
+          <button class="pill" onclick="selectPill('type', 'hr', this)">HR Screening</button>
+          <button class="pill active" onclick="selectPill('type', 'manager', this)">Manager</button>
+          <button class="pill" onclick="selectPill('type', 'panel', this)">Panel</button>
+        </div>
+      </div>
+      <div class="form-section">
+        <label class="form-label">Duration</label>
+        <div class="pill-group" id="dur-pills">
+          <button class="pill" onclick="selectPill('dur', '15', this)">15 min</button>
+          <button class="pill active" onclick="selectPill('dur', '30', this)">30 min</button>
+          <button class="pill" onclick="selectPill('dur', '60', this)">60 min</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Start button -->
+    <div class="setup-footer">
+      <button class="btn btn-primary" id="start-btn" onclick="startSession()" style="max-width:200px;">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="1.2"/><path d="M6.5 5.5L10.5 8L6.5 10.5V5.5Z" fill="currentColor"/></svg>
+        Begin session
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SCREEN 2 — INTERVIEW
+═══════════════════════════════════════════ -->
+<div id="screen-interview" class="screen">
+
+  <div class="interview-header">
+    <div class="interview-meta">
+      <span id="header-type-badge" class="meta-badge">—</span>
+      <span id="header-company" style="font-size:13px;color:var(--text2);">—</span>
+    </div>
+    <div class="timer-wrap">
+      <div class="timer-bar-wrap"><div class="timer-bar" id="timer-bar"></div></div>
+      <div class="timer-display" id="timer-display">30:00</div>
+      <button class="btn btn-danger" onclick="confirmEnd()">End</button>
+    </div>
+  </div>
+
+  <div class="interview-body" id="interview-body">
+    <!-- Messages injected here -->
+  </div>
+
+  <div class="interview-footer">
+    <div class="mic-area">
+      <button class="mic-btn disabled-mic" id="mic-btn" onclick="toggleMic()" disabled title="Hold to answer">
+        <svg class="mic-icon" width="20" height="20" viewBox="0 0 20 20" fill="none">
+          <rect x="7" y="2" width="6" height="10" rx="3" stroke="currentColor" stroke-width="1.5"/>
+          <path d="M4 9C4 12.314 6.686 15 10 15C13.314 15 16 12.314 16 9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="10" y1="15" x2="10" y2="18" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="7" y1="18" x2="13" y2="18" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+      </button>
+      <div class="mic-status">
+        <div class="mic-label" id="mic-label">Waiting for interviewer…</div>
+        <div class="mic-transcript" id="mic-transcript"></div>
+      </div>
+      <div class="answer-duration" id="answer-duration"></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ═══════════════════════════════════════════
+     SCREEN 3 — RESULTS
+═══════════════════════════════════════════ -->
+<div id="screen-results" class="screen">
+  <div class="results-wrap">
+    <div class="results-header">
+      <div class="results-title" id="results-title">Session complete</div>
+      <div class="results-meta-row" id="results-meta-row"></div>
+    </div>
+
+    <!-- Overall score -->
+    <div class="overall-score-card">
+      <div class="score-circle">
+        <span class="score-num" id="overall-score-num">—</span>
+        <span class="score-denom">/10</span>
+      </div>
+      <div class="score-summary">
+        <h3 id="score-headline">Overall performance</h3>
+        <p id="score-blurb"></p>
+      </div>
+    </div>
+
+    <!-- Domain scores -->
+    <div class="section-label" style="margin-bottom:14px;">Performance by domain</div>
+    <div id="domain-cards"></div>
+
+    <!-- Strengths + improvements -->
+    <div class="feedback-grid" id="feedback-grid" style="margin-top:28px;">
+      <div class="feedback-col strengths">
+        <h4>Strengths</h4>
+        <div id="strengths-list"></div>
+      </div>
+      <div class="feedback-col improvements">
+        <h4>Areas to strengthen</h4>
+        <div id="improvements-list"></div>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="results-actions">
+      <button class="btn btn-email" onclick="emailResults()">
+        <svg width="15" height="15" viewBox="0 0 15 15" fill="none"><rect x="1" y="3" width="13" height="9" rx="1.5" stroke="currentColor" stroke-width="1.2"/><path d="M1 4.5L7.5 9L14 4.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+        Email results
+      </button>
+      <button class="btn btn-ghost" onclick="showScreen('screen-setup')">
+        New session
+      </button>
+    </div>
+
+    <!-- History -->
+    <div class="history-section" id="history-section">
+      <div class="section-label" style="margin-bottom:14px;">Past sessions</div>
+      <div id="history-list"></div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+// CONFIG — update these values
+// ═══════════════════════════════════════════════════════════
+const CONFIG = {
+  sitePassword:    "CHANGE_THIS_PASSWORD",
+  workerUrl:       "https://YOUR_WORKER.YOUR_SUBDOMAIN.workers.dev",
+  githubToken:     "YOUR_GITHUB_PAT",
+  githubOwner:     "YOUR_GITHUB_USERNAME",
+  githubRepo:      "YOUR_REPO_NAME",
+};
+
+// ═══════════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════════
+let state = {
+  user: "michael",
+  jobDescription: "",
+  contextUrls: [],
+  interviewType: "manager",
+  duration: 30,
+  conversation: [],     // {role, content}
+  transcript: [],       // {speaker, text, durationSec}
+  timerInterval: null,
+  secondsLeft: 0,
+  totalSeconds: 0,
+  phase: "intro",       // intro | main | qa | wrap
+  isAISpeaking: false,
+  recognition: null,
+  isRecording: false,
+  answerStartTime: null,
+  sessionResults: null,
+};
+
+const DOMAINS = [
+  { key: "clarity",     label: "Clarity & structure" },
+  { key: "relevance",   label: "Relevance to the role" },
+  { key: "depth",       label: "Depth & specificity" },
+  { key: "confidence",  label: "Confidence & presence" },
+  { key: "culture",     label: "Culture & motivation fit" },
+];
+
+const TYPE_LABELS = { hr: "HR Screening", manager: "Manager Interview", panel: "Panel Interview" };
+
+// ═══════════════════════════════════════════════════════════
+// PASSWORD GATE
+// ═══════════════════════════════════════════════════════════
+function checkPassword() {
+  const val = document.getElementById("gate-input").value;
+  if (val === CONFIG.sitePassword) {
+    localStorage.setItem("iv_auth", "1");
+    showScreen("screen-setup");
+  } else {
+    const err = document.getElementById("gate-error");
+    err.textContent = "Incorrect access code.";
+    document.getElementById("gate-input").value = "";
+    setTimeout(() => err.textContent = "", 3000);
+  }
+}
+
+document.getElementById("gate-input").addEventListener("keydown", e => {
+  if (e.key === "Enter") checkPassword();
+});
+
+// Check if already authenticated
+if (localStorage.getItem("iv_auth") === "1") showScreen("screen-setup");
+
+// ═══════════════════════════════════════════════════════════
+// SCREEN ROUTING
+// ═══════════════════════════════════════════════════════════
+function showScreen(id) {
+  document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+}
+
+// ═══════════════════════════════════════════════════════════
+// SETUP SCREEN INTERACTIONS
+// ═══════════════════════════════════════════════════════════
+let selectedType = "manager";
+let selectedDur  = "30";
+let urlCount = 1;
+
+function selectPill(group, value, el) {
+  const container = el.closest(".pill-group");
+  container.querySelectorAll(".pill").forEach(p => p.classList.remove("active"));
+  el.classList.add("active");
+  if (group === "type") selectedType = value;
+  if (group === "dur") selectedDur = value;
+}
+
+function addUrlRow() {
+  if (urlCount >= 2) return;
+  urlCount++;
+  const row = document.createElement("div");
+  row.className = "url-row";
+  row.innerHTML = `<input type="url" placeholder="https://company.com/team" class="ctx-url"><button class="btn btn-ghost" onclick="removeUrlRow(this)" title="Remove">✕</button>`;
+  document.getElementById("url-list").appendChild(row);
+  if (urlCount >= 2) document.getElementById("url-add-btn").style.display = "none";
+}
+
+function removeUrlRow(btn) {
+  btn.closest(".url-row").remove();
+  urlCount = Math.max(1, urlCount - 1);
+  if (urlCount < 2) document.getElementById("url-add-btn").style.display = "";
+}
+
+document.getElementById("setup-jd").addEventListener("input", function() {
+  document.getElementById("jd-count").textContent = this.value.length.toLocaleString() + " characters";
+  if (this.value.trim().length > 50 && urlCount === 1) {
+    document.getElementById("url-add-btn").style.display = "";
+  }
+});
+
+// ═══════════════════════════════════════════════════════════
+// SESSION START
+// ═══════════════════════════════════════════════════════════
+async function startSession() {
+  const jd = document.getElementById("setup-jd").value.trim();
+  if (jd.length < 50) {
+    alert("Please paste a job description (at least a sentence or two).");
+    return;
+  }
+
+  state.user           = document.getElementById("setup-user").value;
+  state.jobDescription = jd;
+  state.interviewType  = selectedType;
+  state.duration       = parseInt(selectedDur);
+  state.secondsLeft    = state.duration * 60;
+  state.totalSeconds   = state.duration * 60;
+  state.conversation   = [];
+  state.transcript     = [];
+  state.phase          = "intro";
+  state.sessionResults = null;
+
+  // Collect URLs
+  state.contextUrls = Array.from(document.querySelectorAll(".ctx-url"))
+    .map(i => i.value.trim()).filter(u => u.startsWith("http"));
+
+  // Fetch URL context
+  let urlContext = "";
+  if (state.contextUrls.length > 0) {
+    urlContext = await fetchUrlContexts(state.contextUrls);
+  }
+  state.urlContext = urlContext;
+
+  // Setup UI
+  const badge = document.getElementById("header-type-badge");
+  badge.textContent = TYPE_LABELS[selectedType];
+  badge.className = "meta-badge type-" + selectedType;
+  document.getElementById("header-company").textContent = guessCompany(jd);
+  document.getElementById("timer-display").textContent = formatTime(state.secondsLeft);
+  document.getElementById("timer-bar").style.width = "100%";
+  document.getElementById("interview-body").innerHTML = "";
+
+  showScreen("screen-interview");
+  startTimer();
+  await sendOpeningMessage();
+}
+
+function guessCompany(jd) {
+  const match = jd.match(/(?:at|@|with|join)\s+([A-Z][A-Za-z0-9& ]{2,30}?)(?:\s|,|\.)/);
+  return match ? match[1] : "your session";
+}
+
+async function fetchUrlContexts(urls) {
+  let combined = "";
+  for (const url of urls) {
+    try {
+      const res = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(url)}`);
+      if (res.ok) {
+        const data = await res.json();
+        const text = data.contents.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").slice(0, 1500);
+        combined += `\n\n[From ${url}]:\n${text}`;
+      }
+    } catch(e) { /* silently skip */ }
+  }
+  return combined;
+}
+
+// ═══════════════════════════════════════════════════════════
+// TIMER
+// ═══════════════════════════════════════════════════════════
+function startTimer() {
+  clearInterval(state.timerInterval);
+  state.timerInterval = setInterval(() => {
+    state.secondsLeft--;
+    const pct = (state.secondsLeft / state.totalSeconds) * 100;
+    const el  = document.getElementById("timer-display");
+    const bar = document.getElementById("timer-bar");
+
+    el.textContent = formatTime(state.secondsLeft);
+    bar.style.width = pct + "%";
+
+    if (state.secondsLeft <= 300 && state.phase === "main") {
+      state.phase = "qa";
+      bar.style.background = "var(--accent)";
+      el.classList.add("warning");
+      addPhaseMarker("Candidate Q&A — 5 minutes remaining", "qa");
+      triggerQAPhase();
+    }
+    if (state.secondsLeft <= 60 && state.phase === "qa") {
+      state.phase = "wrap";
+      bar.style.background = "var(--red)";
+      el.classList.remove("warning");
+      el.classList.add("urgent");
+    }
+    if (state.secondsLeft <= 0) {
+      clearInterval(state.timerInterval);
+      endSession();
+    }
+  }, 1000);
+}
+
+function formatTime(s) {
+  const m = Math.floor(s / 60);
+  const sec = s % 60;
+  return `${String(m).padStart(2,"0")}:${String(sec).padStart(2,"0")}`;
+}
+
+// ═══════════════════════════════════════════════════════════
+// SYSTEM PROMPT BUILDER
+// ═══════════════════════════════════════════════════════════
+function buildSystemPrompt() {
+  const typeInstructions = {
+    hr: `You are conducting an HR screening interview. Focus on culture fit, motivation, career trajectory, and candidate overview. Keep questions conversational and warm. Assess how the candidate presents themselves and whether they'd be a culture add.`,
+    manager: `You are a hiring manager conducting a technical/competency interview. Focus on past experience, depth of knowledge, how they handle challenges, and whether they can do the job. Push for specific examples and outcomes. Be direct but professional.`,
+    panel: `You are facilitating a panel interview. Naturally shift between different "panel member" perspectives — sometimes representing the team lead's view, sometimes a peer, sometimes a cross-functional partner. Make this variety feel organic, not robotic. Probe different angles.`
+  };
+
+  const durationNote = state.duration === 15
+    ? "This is a short 15-minute interview — keep exchanges tight, 4–5 questions max."
+    : state.duration === 30
+    ? "This is a standard 30-minute interview — aim for 6–8 meaningful questions."
+    : "This is a full 60-minute interview — go deep on 8–12 questions, allow real back-and-forth.";
+
+  return `You are a realistic, nuanced job interviewer for a practice simulation. Your goal is to help the candidate grow through a high-quality, natural-feeling interview experience.
+
+INTERVIEW TYPE:
+${typeInstructions[state.interviewType]}
+
+DURATION NOTE:
+${durationNote}
+
+JOB DESCRIPTION:
+${state.jobDescription}
+
+${state.urlContext ? `ADDITIONAL COMPANY CONTEXT:
+${state.urlContext}` : ""}
+
+BEHAVIORAL INSTRUCTIONS — read these carefully:
+1. Sound like a real interviewer, not a quiz machine. Vary your phrasing. React naturally to answers. Sometimes say "that's helpful, tell me more about X" or "interesting — how did the team respond to that?" before moving on.
+2. If an answer is vague or underdeveloped, probe once with a natural follow-up. If an answer is strong and complete, move on without belaboring it.
+3. You may occasionally answer the candidate's questions about the role or company — but keep answers brief and return focus to them.
+4. Use transitional language: "Let's shift gears a bit…", "Building on that…", "I want to come back to something you said…"
+5. Adapt your tone slightly based on answers. More warmth when they're struggling, more rigor when they're confident.
+6. NEVER number your questions. NEVER say "Question 3:" or similar. It must feel like a real conversation.
+7. Keep your turns to 2–4 sentences max unless you are explaining context for a question.
+
+SCORING DOMAINS (you will evaluate these at the end):
+- Clarity & structure: Were answers organized and easy to follow?
+- Relevance to the role: Did answers connect to the specific JD and company?
+- Depth & specificity: Were answers backed by real examples and outcomes?
+- Confidence & presence: Did the candidate sound composed and direct?
+- Culture & motivation fit: Did they convey genuine interest and alignment?
+
+PHASES:
+- Main interview: questions and conversation as normal
+- Q&A phase (triggered externally — you'll receive a [QA_PHASE] signal): Invite the candidate to ask questions. Evaluate their questions. A great question shows research and role-awareness. A weak question is generic or could be answered on the company website. If their questions start running long, gently signal time ("I want to be respectful of your time — one more?"). This wrapping skill is something great candidates practice.
+- End: When you receive [END_SESSION], provide your full scoring assessment in the exact JSON format specified.
+
+OUTPUT FORMAT FOR SCORING (only when [END_SESSION] is in the message):
+Return ONLY valid JSON, nothing else:
+{
+  "scores": {
+    "clarity": <0-10>,
+    "relevance": <0-10>,
+    "depth": <0-10>,
+    "confidence": <0-10>,
+    "culture": <0-10>
+  },
+  "justifications": {
+    "clarity": "<3-4 sentences: what worked, what didn't, a specific example from the session>",
+    "relevance": "<3-4 sentences>",
+    "depth": "<3-4 sentences>",
+    "confidence": "<3-4 sentences>",
+    "culture": "<3-4 sentences>"
+  },
+  "strengths": [
+    {"point": "<specific strength>", "example": "<quote or paraphrase from their answer>"},
+    {"point": "<specific strength>", "example": "<quote or paraphrase>"},
+    {"point": "<specific strength>", "example": "<quote or paraphrase>"}
+  ],
+  "improvements": [
+    {"point": "<specific area>", "suggestion": "<concrete coaching advice>", "example": "<what they said vs what would have been stronger>"},
+    {"point": "<specific area>", "suggestion": "<concrete coaching advice>", "example": "<what they said vs what would have been stronger>"},
+    {"point": "<specific area>", "suggestion": "<concrete coaching advice>", "example": "<what they said vs what would have been stronger>"}
+  ],
+  "overallBlurb": "<2-3 sentences: honest overall read on the session, what defines this candidate's current level>",
+  "wrapCoachingNote": "<only if candidate's Q&A went overtime or questions were weak — 1-2 sentences of specific coaching on interview wrap technique. Leave empty string if wrap was fine.>"
+}`;
+}
+
+// ═══════════════════════════════════════════════════════════
+// CLAUDE API CALLS
+// ═══════════════════════════════════════════════════════════
+async function callClaude(messages, expectJson = false) {
+  try {
+    const res = await fetch(CONFIG.workerUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "claude-haiku-4-5-20251001",
+        max_tokens: expectJson ? 2000 : 400,
+        system: buildSystemPrompt(),
+        messages: messages,
+      })
+    });
+    if (!res.ok) throw new Error(`Worker error: ${res.status}`);
+    const data = await res.json();
+    return data.content[0].text;
+  } catch (err) {
+    console.error("Claude error:", err);
+    return expectJson ? null : "I'm sorry, I had a technical issue. Let's continue — could you repeat your last answer?";
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// INTERVIEW FLOW
+// ═══════════════════════════════════════════════════════════
+async function sendOpeningMessage() {
+  showThinking();
+  const openingPrompt = `Start the interview. Greet the candidate warmly, briefly introduce yourself (invent a realistic name and role that fits the interview type), and ask your first question. Keep it natural.`;
+  state.conversation.push({ role: "user", content: openingPrompt });
+  const reply = await callClaude(state.conversation);
+  state.conversation.push({ role: "assistant", content: reply });
+  state.transcript.push({ speaker: "ai", text: reply });
+  removeThinking();
+  addMessage("ai", reply);
+  speak(reply, () => enableMic());
+  state.phase = "main";
+}
+
+async function submitUserAnswer(text, durationSec) {
+  state.transcript.push({ speaker: "user", text, durationSec });
+  state.conversation.push({ role: "user", content: text });
+  addMessage("user", text, durationSec);
+
+  disableMic();
+  showThinking();
+  const reply = await callClaude(state.conversation);
+  state.conversation.push({ role: "assistant", content: reply });
+  state.transcript.push({ speaker: "ai", text: reply });
+  removeThinking();
+  addMessage("ai", reply);
+  speak(reply, () => enableMic());
+}
+
+async function triggerQAPhase() {
+  state.conversation.push({ role: "user", content: "[QA_PHASE] Transition now to the candidate Q&A portion." });
+  disableMic();
+  showThinking();
+  const reply = await callClaude(state.conversation);
+  state.conversation.push({ role: "assistant", content: reply });
+  state.transcript.push({ speaker: "ai", text: reply });
+  removeThinking();
+  addMessage("ai", reply);
+  speak(reply, () => enableMic());
+}
+
+async function endSession() {
+  clearInterval(state.timerInterval);
+  disableMic();
+  if (window.speechSynthesis) window.speechSynthesis.cancel();
+
+  addPhaseMarker("Session ended — generating your report", "wrap");
+  showThinking();
+
+  const transcriptText = state.transcript
+    .map(t => `${t.speaker === "ai" ? "INTERVIEWER" : "CANDIDATE"}: ${t.text}`)
+    .join("\n\n");
+
+  const scoringMessages = [
+    ...state.conversation,
+    { role: "user", content: `[END_SESSION]\n\nFull transcript for reference:\n${transcriptText}\n\nProvide your scoring assessment as JSON now.` }
+  ];
+
+  const raw = await callClaude(scoringMessages, true);
+  removeThinking();
+
+  let results = null;
+  try {
+    const cleaned = raw.replace(/```json|```/g, "").trim();
+    results = JSON.parse(cleaned);
+  } catch (e) {
+    results = generateFallbackResults();
+  }
+
+  state.sessionResults = results;
+  await saveResults(results);
+  renderResults(results);
+  showScreen("screen-results");
+}
+
+// ═══════════════════════════════════════════════════════════
+// SPEECH — AI VOICE OUTPUT
+// ═══════════════════════════════════════════════════════════
+function speak(text, onEnd) {
+  if (!window.speechSynthesis) { onEnd && onEnd(); return; }
+  window.speechSynthesis.cancel();
+  state.isAISpeaking = true;
+  disableMic();
+
+  const utt = new SpeechSynthesisUtterance(text);
+  utt.rate  = 0.92;
+  utt.pitch = 1.0;
+  utt.volume = 1.0;
+
+  // Pick a good voice if available
+  const voices = window.speechSynthesis.getVoices();
+  const preferred = voices.find(v =>
+    v.lang.startsWith("en") && (v.name.includes("Natural") || v.name.includes("Neural") || v.name.includes("Premium") || v.name.includes("Samantha") || v.name.includes("Karen"))
+  ) || voices.find(v => v.lang.startsWith("en")) || null;
+  if (preferred) utt.voice = preferred;
+
+  utt.onend = () => {
+    state.isAISpeaking = false;
+    onEnd && onEnd();
+  };
+  utt.onerror = () => {
+    state.isAISpeaking = false;
+    onEnd && onEnd();
+  };
+
+  // Chrome bug: voices may not be ready
+  setTimeout(() => window.speechSynthesis.speak(utt), 100);
+}
+
+// ═══════════════════════════════════════════════════════════
+// MIC / SPEECH RECOGNITION
+// ═══════════════════════════════════════════════════════════
+function enableMic() {
+  const btn = document.getElementById("mic-btn");
+  btn.classList.remove("disabled-mic");
+  btn.disabled = false;
+  document.getElementById("mic-label").textContent = "Press mic to answer";
+}
+
+function disableMic() {
+  const btn = document.getElementById("mic-btn");
+  btn.classList.add("disabled-mic");
+  btn.disabled = true;
+  if (state.isRecording) stopRecording();
+  document.getElementById("mic-label").textContent = "Interviewer speaking…";
+  document.getElementById("mic-transcript").textContent = "";
+  document.getElementById("mic-transcript").classList.remove("active");
+}
+
+function toggleMic() {
+  if (state.isRecording) stopRecording(true);
+  else startRecording();
+}
+
+function startRecording() {
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRecognition) {
+    alert("Your browser doesn't support speech recognition. Try Chrome or Edge.");
+    return;
+  }
+
+  state.recognition = new SpeechRecognition();
+  state.recognition.continuous = true;
+  state.recognition.interimResults = true;
+  state.recognition.lang = "en-US";
+  state.isRecording = true;
+  state.answerStartTime = Date.now();
+
+  const btn = document.getElementById("mic-btn");
+  btn.classList.add("recording");
+  document.getElementById("mic-label").textContent = "Recording — press again when done";
+  document.getElementById("mic-transcript").classList.add("active");
+
+  let finalTranscript = "";
+  state.recognition.onresult = e => {
+    let interim = "";
+    finalTranscript = "";
+    for (let i = 0; i < e.results.length; i++) {
+      if (e.results[i].isFinal) finalTranscript += e.results[i][0].transcript;
+      else interim += e.results[i][0].transcript;
+    }
+    document.getElementById("mic-transcript").textContent = finalTranscript + interim;
+    const elapsed = Math.round((Date.now() - state.answerStartTime) / 1000);
+    document.getElementById("answer-duration").textContent = formatTime(elapsed);
+  };
+
+  state.recognition.onerror = () => stopRecording(true);
+  state.recognition.start();
+}
+
+function stopRecording(submit = false) {
+  if (!state.isRecording) return;
+  state.isRecording = false;
+
+  const btn = document.getElementById("mic-btn");
+  btn.classList.remove("recording");
+  document.getElementById("mic-label").textContent = "Processing…";
+
+  const durationSec = Math.round((Date.now() - state.answerStartTime) / 1000);
+  const text = document.getElementById("mic-transcript").textContent.trim();
+  document.getElementById("answer-duration").textContent = "";
+
+  if (state.recognition) { try { state.recognition.stop(); } catch(e) {} }
+
+  if (submit && text.length > 3) {
+    submitUserAnswer(text, durationSec);
+  } else {
+    document.getElementById("mic-label").textContent = "Press mic to answer";
+    document.getElementById("mic-transcript").textContent = "";
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// CHAT UI HELPERS
+// ═══════════════════════════════════════════════════════════
+function addMessage(role, text, durationSec) {
+  const body = document.getElementById("interview-body");
+  const wrap = document.createElement("div");
+  wrap.className = `message ${role}`;
+
+  const initials = role === "ai" ? "IV" : (state.user === "michael" ? "MR" : "TH");
+  const avatarClass = role === "ai" ? "ai-avatar" : "user-avatar";
+  const timeStr = role === "user" && durationSec
+    ? `${formatTime(durationSec)} answer`
+    : new Date().toLocaleTimeString([], {hour:"2-digit", minute:"2-digit"});
+
+  wrap.innerHTML = `
+    <div class="msg-avatar ${avatarClass}">${initials}</div>
+    <div>
+      <div class="msg-bubble">${escHtml(text)}</div>
+      <div class="msg-time">${timeStr}</div>
+    </div>`;
+
+  body.appendChild(wrap);
+  body.scrollTop = body.scrollHeight;
+}
+
+function addPhaseMarker(label, type) {
+  const body = document.getElementById("interview-body");
+  const el = document.createElement("div");
+  el.className = `phase-indicator ${type}`;
+  el.innerHTML = `<span>${label}</span>`;
+  body.appendChild(el);
+  body.scrollTop = body.scrollHeight;
+}
+
+let thinkingEl = null;
+function showThinking() {
+  const body = document.getElementById("interview-body");
+  thinkingEl = document.createElement("div");
+  thinkingEl.className = "thinking-msg";
+  thinkingEl.innerHTML = `
+    <div class="msg-avatar ai-avatar">IV</div>
+    <div class="thinking-bubble">
+      <span class="speaking-dots">
+        <span></span><span></span><span></span>
+      </span>
+      thinking…
+    </div>`;
+  body.appendChild(thinkingEl);
+  body.scrollTop = body.scrollHeight;
+}
+
+function removeThinking() {
+  if (thinkingEl) { thinkingEl.remove(); thinkingEl = null; }
+}
+
+function confirmEnd() {
+  if (confirm("End the session now and see your results?")) endSession();
+}
+
+function escHtml(s) {
+  return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/\n/g,"<br>");
+}
+
+// ═══════════════════════════════════════════════════════════
+// RESULTS RENDERING
+// ═══════════════════════════════════════════════════════════
+function renderResults(r) {
+  const avg = Object.values(r.scores).reduce((a,b) => a+b, 0) / 5;
+  const avgRounded = Math.round(avg * 10) / 10;
+
+  document.getElementById("results-title").textContent =
+    `Session complete — ${TYPE_LABELS[state.interviewType]}`;
+
+  const meta = document.getElementById("results-meta-row");
+  const d = new Date();
+  meta.innerHTML = `
+    <span class="meta-badge">${d.toLocaleDateString("en-CA", {month:"short",day:"numeric",year:"numeric"})}</span>
+    <span class="meta-badge">${state.duration} min</span>
+    <span class="meta-badge type-${state.interviewType}">${TYPE_LABELS[state.interviewType]}</span>`;
+
+  document.getElementById("overall-score-num").textContent = avgRounded.toFixed(1);
+  document.getElementById("score-blurb").textContent = r.overallBlurb || "";
+
+  const headline =
+    avg >= 8 ? "Strong performance" :
+    avg >= 6 ? "Solid with room to grow" :
+    avg >= 4 ? "Developing — keep practicing" :
+    "Early stage — great data for improvement";
+  document.getElementById("score-headline").textContent = headline;
+
+  // Domain cards
+  const dc = document.getElementById("domain-cards");
+  dc.innerHTML = "";
+  DOMAINS.forEach(dom => {
+    const score = r.scores[dom.key] || 0;
+    const pct = (score / 10) * 100;
+    const tier = score >= 7 ? "high" : score >= 4 ? "mid" : "low";
+    const barColor = score >= 7 ? "var(--green)" : score >= 4 ? "var(--accent)" : "var(--red)";
+    dc.innerHTML += `
+      <div class="domain-card">
+        <div class="domain-top">
+          <span class="domain-name">${dom.label}</span>
+          <span class="domain-score-pill ${tier}">${score}/10</span>
+        </div>
+        <div class="domain-bar-wrap">
+          <div class="domain-bar" style="width:${pct}%;background:${barColor}"></div>
+        </div>
+        <div class="domain-feedback">${escHtml(r.justifications[dom.key] || "")}</div>
+      </div>`;
+  });
+
+  // Wrap coaching note (if any)
+  if (r.wrapCoachingNote && r.wrapCoachingNote.trim()) {
+    dc.innerHTML += `
+      <div class="domain-card" style="border-left:2px solid rgba(200,169,110,0.5)">
+        <div class="domain-top">
+          <span class="domain-name">Interview wrap technique</span>
+          <span class="domain-score-pill mid">Coaching note</span>
+        </div>
+        <div class="domain-feedback">${escHtml(r.wrapCoachingNote)}</div>
+      </div>`;
+  }
+
+  // Strengths
+  const sl = document.getElementById("strengths-list");
+  sl.innerHTML = (r.strengths || []).map(s => `
+    <div class="feedback-item">
+      <p>${escHtml(s.point)}</p>
+      <blockquote>"${escHtml(s.example)}"</blockquote>
+    </div>`).join("");
+
+  // Improvements
+  const il = document.getElementById("improvements-list");
+  il.innerHTML = (r.improvements || []).map(i => `
+    <div class="feedback-item">
+      <p>${escHtml(i.point)}</p>
+      <p style="font-size:12px;color:var(--accent2);margin-top:4px;">${escHtml(i.suggestion)}</p>
+      <blockquote>${escHtml(i.example)}</blockquote>
+    </div>`).join("");
+
+  // Load history
+  loadHistory();
+}
+
+// ═══════════════════════════════════════════════════════════
+// GITHUB STORAGE
+// ═══════════════════════════════════════════════════════════
+async function loadHistory() {
+  const file = `data/${state.user}.json`;
+  try {
+    const res = await fetch(
+      `https://api.github.com/repos/${CONFIG.githubOwner}/${CONFIG.githubRepo}/contents/${file}`,
+      { headers: { Authorization: `token ${CONFIG.githubToken}`, Accept: "application/vnd.github.v3+json" } }
+    );
+    if (!res.ok) { renderHistory([]); return; }
+    const meta = await res.json();
+    const content = JSON.parse(atob(meta.content));
+    const sessions = (content.sessions || []).slice(-10).reverse();
+    renderHistory(sessions);
+  } catch(e) { renderHistory([]); }
+}
+
+function renderHistory(sessions) {
+  const list = document.getElementById("history-list");
+  if (!sessions.length) {
+    list.innerHTML = `<div style="font-size:13px;color:var(--text3);padding:12px 0;">No past sessions yet. This will be your first!</div>`;
+    return;
+  }
+  list.innerHTML = sessions.map(s => {
+    const scoreColor = s.avgScore >= 7 ? "var(--green)" : s.avgScore >= 4 ? "var(--accent)" : "var(--red)";
+    return `
+      <div class="history-row">
+        <span class="history-date">${s.date}</span>
+        <span class="history-job">${escHtml(s.jobTitle || "Practice session")}</span>
+        <span class="history-type">${s.type || ""}</span>
+        <span class="history-score" style="color:${scoreColor}">${s.avgScore}/10</span>
+      </div>`;
+  }).join("");
+}
+
+async function saveResults(r) {
+  const file = `data/${state.user}.json`;
+  const avg = Object.values(r.scores).reduce((a,b)=>a+b,0)/5;
+  const newRecord = {
+    date: new Date().toISOString().split("T")[0],
+    jobTitle: guessJobTitle(state.jobDescription),
+    type: state.interviewType,
+    duration: state.duration,
+    avgScore: Math.round(avg * 10) / 10,
+    scores: r.scores,
+    overallBlurb: r.overallBlurb,
+    strengths: (r.strengths||[]).map(s=>s.point),
+    improvements: (r.improvements||[]).map(i=>i.point),
+  };
+
+  try {
+    // Get current file
+    const getRes = await fetch(
+      `https://api.github.com/repos/${CONFIG.githubOwner}/${CONFIG.githubRepo}/contents/${file}`,
+      { headers: { Authorization: `token ${CONFIG.githubToken}`, Accept: "application/vnd.github.v3+json" } }
+    );
+
+    let sha = null;
+    let existing = { sessions: [] };
+    if (getRes.ok) {
+      const meta = await getRes.json();
+      sha = meta.sha;
+      try { existing = JSON.parse(atob(meta.content)); } catch(e) {}
+    }
+
+    existing.sessions = existing.sessions || [];
+    existing.sessions.push(newRecord);
+
+    const body = { message: `Session recorded — ${newRecord.date}`, content: btoa(JSON.stringify(existing, null, 2)) };
+    if (sha) body.sha = sha;
+
+    await fetch(
+      `https://api.github.com/repos/${CONFIG.githubOwner}/${CONFIG.githubRepo}/contents/${file}`,
+      { method: "PUT", headers: { Authorization: `token ${CONFIG.githubToken}`, "Content-Type": "application/json" }, body: JSON.stringify(body) }
+    );
+  } catch(e) { console.error("Save failed:", e); }
+}
+
+function guessJobTitle(jd) {
+  const lines = jd.split("\n").slice(0,5).join(" ");
+  const match = lines.match(/(?:position|role|title|job)[\s:–-]*([A-Za-z ,&]{5,50})/i)
+    || lines.match(/([A-Z][a-z]+ (?:Manager|Specialist|Engineer|Director|Coordinator|Analyst|Developer|Designer)[A-Za-z ,]*)/);
+  return match ? match[1].trim().slice(0,50) : "Practice session";
+}
+
+// ═══════════════════════════════════════════════════════════
+// EMAIL RESULTS
+// ═══════════════════════════════════════════════════════════
+function emailResults() {
+  const r = state.sessionResults;
+  if (!r) return;
+
+  const avg = Object.values(r.scores).reduce((a,b)=>a+b,0)/5;
+  const d = new Date().toLocaleDateString("en-CA",{month:"long",day:"numeric",year:"numeric"});
+  const typeLabel = TYPE_LABELS[state.interviewType];
+
+  let body = `INTERVIEW PRACTICE — ${d}\n`;
+  body += `${typeLabel} · ${state.duration} minutes\n`;
+  body += `Overall score: ${(Math.round(avg*10)/10).toFixed(1)} / 10\n`;
+  body += `\n${r.overallBlurb || ""}\n`;
+  body += `\n──────────────────────────────\n`;
+  body += `DOMAIN SCORES\n`;
+  body += `──────────────────────────────\n`;
+  DOMAINS.forEach(dom => {
+    body += `\n${dom.label}: ${r.scores[dom.key]}/10\n`;
+    body += `${r.justifications[dom.key] || ""}\n`;
+  });
+  if (r.wrapCoachingNote) {
+    body += `\nInterview wrap: ${r.wrapCoachingNote}\n`;
+  }
+  body += `\n──────────────────────────────\n`;
+  body += `STRENGTHS\n`;
+  body += `──────────────────────────────\n`;
+  (r.strengths||[]).forEach((s,i) => {
+    body += `\n${i+1}. ${s.point}\n   Example: "${s.example}"\n`;
+  });
+  body += `\n──────────────────────────────\n`;
+  body += `AREAS TO STRENGTHEN\n`;
+  body += `──────────────────────────────\n`;
+  (r.improvements||[]).forEach((imp,i) => {
+    body += `\n${i+1}. ${imp.point}\n   Coach: ${imp.suggestion}\n   Example: ${imp.example}\n`;
+  });
+
+  const subject = encodeURIComponent(`Interview Practice — ${d} — ${(Math.round(avg*10)/10).toFixed(1)}/10`);
+  const bodyEnc = encodeURIComponent(body);
+  window.location.href = `mailto:michaeljraffanello@gmail.com?subject=${subject}&body=${bodyEnc}`;
+}
+
+// ═══════════════════════════════════════════════════════════
+// FALLBACK RESULTS (if JSON parse fails)
+// ═══════════════════════════════════════════════════════════
+function generateFallbackResults() {
+  return {
+    scores: { clarity:6, relevance:6, depth:5, confidence:6, culture:6 },
+    justifications: {
+      clarity: "The session completed but detailed scoring wasn't available. Review the transcript to assess your answer structure.",
+      relevance: "Consider how well you tied your answers back to the specific role and company.",
+      depth: "Reflect on whether your examples included specific outcomes and measurable results.",
+      confidence: "Think about moments where you hesitated or gave overly qualified answers.",
+      culture: "Review how clearly you expressed your motivation for this specific role and company."
+    },
+    strengths: [
+      { point: "Completed the full session", example: "You practiced through the entire interview format." },
+      { point: "Engaged with all questions", example: "You provided responses to each area explored." },
+      { point: "Practice itself is progress", example: "Each session builds familiarity and confidence." }
+    ],
+    improvements: [
+      { point: "Review your specific examples", suggestion: "For each answer, ask: did I give a concrete outcome?", example: "Try to quantify results wherever possible." },
+      { point: "Answer the Q&A portion with intention", suggestion: "Prepare 3–5 strong questions before every interview.", example: "Questions about team dynamics, success metrics, and growth signal strong interest." },
+      { point: "Practice wrapping answers cleanly", suggestion: "End each answer with a brief summary sentence.", example: "A clean close signals confidence and self-awareness." }
+    ],
+    overallBlurb: "Session complete. Review the full transcript to identify patterns in your answers and areas where you can add more specificity.",
+    wrapCoachingNote: ""
+  };
+}
+</script>
+</body>
+</html>
