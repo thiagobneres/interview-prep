@@ -915,6 +915,7 @@
   </div>
 
   <div class="interview-footer">
+    <div id="interview-footer-action" style="margin-bottom:10px;"></div>
     <div class="mic-area">
       <button class="mic-btn disabled-mic" id="mic-btn" onclick="toggleMic()" disabled title="Hold to answer">
         <svg class="mic-icon" width="20" height="20" viewBox="0 0 20 20" fill="none">
@@ -997,8 +998,8 @@
 // CONFIG — update these values
 // ═══════════════════════════════════════════════════════════
 const CONFIG = {
-  sitePassword: "lemon",
-  workerUrl:    "https://lucky-cell-b3cb.thiago-bneres.workers.dev",
+  sitePassword: "CHANGE_THIS_PASSWORD",
+  workerUrl:    "https://YOUR_WORKER.thiago-bneres.workers.dev",
   githubOwner:  "thiagobneres",
   githubRepo:   "interview-prep",
 };
@@ -1189,7 +1190,14 @@ function startTimer() {
       bar.style.background = "var(--accent)";
       el.classList.add("warning");
       addPhaseMarker("Candidate Q&A — 5 minutes remaining", "qa");
-      triggerQAPhase();
+      // Wait for AI to finish speaking before triggering QA transition
+      if (state.isAISpeaking) {
+        const waitForSpeech = setInterval(() => {
+          if (!state.isAISpeaking) { clearInterval(waitForSpeech); triggerQAPhase(); }
+        }, 500);
+      } else {
+        triggerQAPhase();
+      }
     }
     if (state.secondsLeft <= 60 && state.phase === "qa") {
       state.phase = "wrap";
@@ -1199,7 +1207,7 @@ function startTimer() {
     }
     if (state.secondsLeft <= 0) {
       clearInterval(state.timerInterval);
-      endSession();
+      showEndPrompt();
     }
   }, 1000);
 }
@@ -1247,7 +1255,7 @@ BEHAVIORAL INSTRUCTIONS — read these carefully:
 4. Use transitional language: "Let's shift gears a bit…", "Building on that…", "I want to come back to something you said…"
 5. Adapt your tone slightly based on answers. More warmth when they're struggling, more rigor when they're confident.
 6. NEVER number your questions. NEVER say "Question 3:" or similar. It must feel like a real conversation.
-7. Keep your turns to 2–4 sentences max unless you are explaining context for a question.
+7. Keep your turns to 2–4 sentences max unless you are explaining context for a question. Be concise — this is a spoken conversation, not a written essay. Short, punchy responses feel more like a real interview.
 
 SCORING DOMAINS (you will evaluate these at the end):
 - Clarity & structure: Were answers organized and easy to follow?
@@ -1303,7 +1311,7 @@ async function callClaude(messages, expectJson = false) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         model: "claude-haiku-4-5-20251001",
-        max_tokens: expectJson ? 2000 : 400,
+        max_tokens: expectJson ? 2000 : 250,
         system: buildSystemPrompt(),
         messages: messages,
       })
@@ -1328,8 +1336,8 @@ async function sendOpeningMessage() {
   state.conversation.push({ role: "assistant", content: reply });
   state.transcript.push({ speaker: "ai", text: reply });
   removeThinking();
-  addMessage("ai", reply);
-  speak(reply, () => enableMic());
+  addMessage("ai", cleanAIReply(reply));
+  speak(cleanAIReply(reply), () => enableMic());
   state.phase = "main";
 }
 
@@ -1344,8 +1352,8 @@ async function submitUserAnswer(text, durationSec) {
   state.conversation.push({ role: "assistant", content: reply });
   state.transcript.push({ speaker: "ai", text: reply });
   removeThinking();
-  addMessage("ai", reply);
-  speak(reply, () => enableMic());
+  addMessage("ai", cleanAIReply(reply));
+  speak(cleanAIReply(reply), () => enableMic());
 }
 
 async function triggerQAPhase() {
@@ -1356,8 +1364,41 @@ async function triggerQAPhase() {
   state.conversation.push({ role: "assistant", content: reply });
   state.transcript.push({ speaker: "ai", text: reply });
   removeThinking();
-  addMessage("ai", reply);
-  speak(reply, () => enableMic());
+  addMessage("ai", cleanAIReply(reply));
+  speak(cleanAIReply(reply), () => enableMic());
+}
+
+// Strip any JSON payload that leaks into AI messages
+function cleanAIReply(text) {
+  // Remove everything from [END_SESSION] onward
+  const endIdx = text.indexOf("[END_SESSION]");
+  if (endIdx !== -1) text = text.slice(0, endIdx).trim();
+  // Remove ```json blocks
+  text = text.replace(/```json[\s\S]*?```/g, "").trim();
+  // Remove bare { ... } JSON objects at end of message
+  text = text.replace(/
+*\{[\s\S]*\}\s*$/g, "").trim();
+  return text;
+}
+
+function showEndPrompt() {
+  // Stop mic and speech
+  disableMic();
+  if (window.speechSynthesis) window.speechSynthesis.cancel();
+
+  // Add a visible end-of-session card in the chat
+  const body = document.getElementById("interview-body");
+  const el = document.createElement("div");
+  el.className = "phase-indicator wrap";
+  el.innerHTML = `<span>Time's up — ready to see your results?</span>`;
+  body.appendChild(el);
+
+  // Show a results button in the footer
+  const footer = document.getElementById("interview-footer-action");
+  footer.innerHTML = `<button class="btn btn-primary" style="max-width:200px" onclick="endSession()">
+    View my results
+  </button>`;
+  body.scrollTop = body.scrollHeight;
 }
 
 async function endSession() {
@@ -1404,7 +1445,7 @@ function speak(text, onEnd) {
   disableMic();
 
   const utt = new SpeechSynthesisUtterance(text);
-  utt.rate  = 0.92;
+  utt.rate  = 1.05;
   utt.pitch = 1.0;
   utt.volume = 1.0;
 
