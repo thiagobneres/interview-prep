@@ -1,0 +1,30 @@
+{
+  "sessions": [
+    {
+      "date": "2026-04-18",
+      "jobTitle": "Practice session",
+      "type": "manager",
+      "duration": 15,
+      "avgScore": 5.6,
+      "scores": {
+        "clarity": 6,
+        "relevance": 7,
+        "depth": 6,
+        "confidence": 5,
+        "culture": 4
+      },
+      "overallBlurb": "This candidate brings solid PropTech domain expertise and demonstrates thoughtful AI product thinking (evaluation metrics, human-in-the-loop risk management, real customer friction discovery). However, the interview revealed significant gaps for a Senior Technical PM role: no evidence of hands-on technical depth (SQL, Jira, BI tooling, data infrastructure work), incomplete response to a critical cross-functional execution question, and delivery issues that undermined confidence. The deflective tone in Q&A suggests the candidate may not fully understand what this role demands or may be interviewing defensively.",
+      "strengths": [
+        "Strong AI systems thinking with real operational constraints",
+        "Excellent domain knowledge in regulated PropTech space",
+        "Problem discovery discipline through customer interviews"
+      ],
+      "improvements": [
+        "Verbal delivery and communication clarity",
+        "Missing evidence of hands-on technical execution at scale",
+        "Incomplete answer to cross-functional execution question",
+        "Engagement and tone in Q&A"
+      ]
+    }
+  ]
+}
