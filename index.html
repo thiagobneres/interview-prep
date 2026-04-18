@@ -1390,14 +1390,10 @@ async function triggerQAPhase() {
 
 // Strip any JSON payload that leaks into AI messages
 function cleanAIReply(text) {
-  // Remove everything from [END_SESSION] onward
-  const endIdx = text.indexOf("[END_SESSION]");
+  var endIdx = text.indexOf("[END_SESSION]");
   if (endIdx !== -1) text = text.slice(0, endIdx).trim();
-  // Remove ```json blocks
-  text = text.replace(/```json[\s\S]*?```/g, "").trim();
-  // Remove bare { ... } JSON objects at end of message
-  text = text.replace(/
-*\{[\s\S]*\}\s*$/g, "").trim();
+  var braceIdx = text.lastIndexOf("\n{");
+  if (braceIdx > 50) text = text.slice(0, braceIdx).trim();
   return text;
 }
 
